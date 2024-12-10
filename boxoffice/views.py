@@ -1788,6 +1788,8 @@ def list_bookings(request, event_id=None, customer=None):
         ws[f'A{start_row}'] = 'Prenotazioni attive da utenti WEB'
         start_row+=1
         active_orderevents = OrderEvent.objects.filter(event=current_event).filter(expired=False).order_by('user__last_name')
+        if active_orderevents.count() < 1:
+            raise
         ws[f'A{start_row}'] = 'O.E. Number' 
         ws[f'B{start_row}'] = 'Cognome' 
         ws[f'C{start_row}'] = 'Nome' 
@@ -1803,19 +1805,20 @@ def list_bookings(request, event_id=None, customer=None):
             ws[f'D{start_row}'] = f'{order.user.email}'
             ws[f'E{start_row}'] = f'{order.user.phone_number}'
             ws[f'F{start_row}'] = f'{order.seats_price}'             
-            ws[f'G{start_row}'] = f'{order.seats_count()}'             
+            ws[f'G{start_row}'] = order.seats_count()             
     except:
         active_orderevents = None
-        start_row += 1
         ws.merge_cells(f'A{start_row}:G{start_row}')
-        ws[f'A{start_row}'] = 'Non ci sono prenotazioni attive da utenti WEB'
+        ws[f'A{start_row}'] = 'Non ci sono prenotazioni attive di utenti WEB'
     
     try:
         start_row += 2
         ws.merge_cells(f'A{start_row}:G{start_row}')
-        ws[f'A{start_row}'] = 'Prenotazioni attive da Box Office per clienti (email, segreteria,...)'
+        ws[f'A{start_row}'] = 'Prenotazioni attive da Box Office per clienti (email, social, segreteria,...)'
         start_row+=1
         active_boxofficebookingevent = BoxOfficeBookingEvent.objects.filter(event=current_event).filter(expired=False).order_by('customer__last_name')
+        if active_boxofficebookingevent.count() < 1:
+            raise 
         ws[f'A{start_row}'] = 'O. Number' 
         ws[f'B{start_row}'] = 'Cognome' 
         ws[f'C{start_row}'] = 'Nome' 
@@ -1831,22 +1834,71 @@ def list_bookings(request, event_id=None, customer=None):
             ws[f'D{start_row}'] = f'{order.customer.email}'
             ws[f'E{start_row}'] = f'{order.customer.phone_number}'
             ws[f'F{start_row}'] = f'{order.seats_price}'             
-            ws[f'G{start_row}'] = f'{order.seats_count()}'             
+            ws[f'G{start_row}'] = order.seats_count()             
 
     except:
         active_boxofficebookingevent = None
-        start_row += 1
         ws.merge_cells(f'A{start_row}:G{start_row}')
         ws[f'A{start_row}'] = 'Non ci sono prenotazioni attive da clienti BoxOffice'
+
     try:
+        start_row += 2
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Prenotazioni vendute di utenti WEB (expired)'
+        start_row+=1
         expired_orderevents = OrderEvent.objects.filter(event=current_event).filter(expired=True).order_by('user__last_name')
+        if expired_orderevents.count() < 1:
+            raise 
+        ws[f'A{start_row}'] = 'O. Number' 
+        ws[f'B{start_row}'] = 'Cognome' 
+        ws[f'C{start_row}'] = 'Nome' 
+        ws[f'D{start_row}'] = 'Email'
+        ws[f'E{start_row}'] = 'Telefono'
+        ws[f'F{start_row}'] = 'Posti' 
+        ws[f'G{start_row}'] = 'Totale' 
+        for order in expired_orderevents:
+            start_row+=1
+            ws[f'A{start_row}'] = f'{order.pk}'
+            ws[f'B{start_row}'] = f'{order.user.last_name}'
+            ws[f'C{start_row}'] = f'{order.user.first_name}'
+            ws[f'D{start_row}'] = f'{order.user.email}'
+            ws[f'E{start_row}'] = f'{order.user.phone_number}'
+            ws[f'F{start_row}'] = f'{order.seats_price}'             
+            ws[f'G{start_row}'] = order.seats_count()             
+
     except:
         expired_orderevents = None
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Non ci sono prenotazioni vendute di utenti WEB'
     
     try:
+        start_row += 2
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Prenotazioni vendute di clienti BoxOffice mail, social, segreteria ... (expired)'
+        start_row+=1
         expired_boxofficebookingevent = BoxOfficeBookingEvent.objects.filter(event=current_event).filter(expired=True).order_by('customer__last_name')
+        if expired_boxofficebookingevent.count() < 1:
+            raise 
+        ws[f'A{start_row}'] = 'O. Number' 
+        ws[f'B{start_row}'] = 'Cognome' 
+        ws[f'C{start_row}'] = 'Nome' 
+        ws[f'D{start_row}'] = 'Email'
+        ws[f'E{start_row}'] = 'Telefono'
+        ws[f'F{start_row}'] = 'Posti' 
+        ws[f'G{start_row}'] = 'Totale' 
+        for order in expired_orderevents:
+            start_row+=1
+            ws[f'A{start_row}'] = f'{order.pk}'
+            ws[f'B{start_row}'] = f'{order.customer.last_name}'
+            ws[f'C{start_row}'] = f'{order.customer.first_name}'
+            ws[f'D{start_row}'] = f'{order.customer.email}'
+            ws[f'E{start_row}'] = f'{order.customer.phone_number}'
+            ws[f'F{start_row}'] = f'{order.seats_price}'             
+            ws[f'G{start_row}'] = order.seats_count()    
     except:
         expired_boxofficebookingevent = None
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Non ci sono prenotazioni vendute da clienti BoxOffice'
 
 
     file_path = os.path.join(MEDIA_ROOT , 'order_list_xlsx',xlsx_filename)
