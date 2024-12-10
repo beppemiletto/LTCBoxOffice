@@ -1,0 +1,81 @@
+{%extends 'boxoffice_base.html'%}
+{%load static%}
+
+{% block content%}
+<section class="section-content padding-y bg">
+    <div class="container">
+        <div class="row">
+            <h3> Ricerca delle prenotazioni attive per evento.</h3>
+        </div>
+        {%if active_orderevent or active_boxofficebookingevent %}
+        <div class="row">
+            <div class="col-8 col-sm-8">
+
+                <h5 class="card-title mb-4">L'evento {{event.show.shw_title}} di</h5>
+                <h5 class="card-title mb-4">{{event.date_time}} ha delle prenotazioni: </h5>
+                {%if active_orderevent %}
+                <p class="card-title mb-4"> - Numero {{active_orderevent|length}} prenotazioni di utenti;</p>
+                {%else%}
+                <p class="card-title mb-4"> - <b>Nessuna prenotazione</b> di utenti;</p>
+                {%endif%}
+                {%if active_orderevent %}
+                <p class="card-title mb-4"> - Numero {{active_boxofficebookingevent|length}} prenotazioni di boxoffice;</p>
+                {%else%}
+                <p class="card-title mb-4"> - <b>Nessuna prenotazione</b> del boxoffice (per clienti);</p>
+                {%endif%}
+                {%if expired_orderevent %}
+                <p class="card-title mb-4"> - Numero {{expired_orderevent|length}} prenotazioni di utenti <b>VENDUTE</b>;</p>
+                {%else%}
+                <p class="card-title mb-4"> - <b>Nessuna prenotazione VENDUTA </b> di utenti;</p>
+                {%endif%}
+
+                {%if expired_boxofficebookingevent %}
+                <p class="card-title mb-4"> - Numero {{expired_boxofficebookingevent|length}} prenotazioni di boxoffice <b>VENDUTE</b>;</p>
+                {%else%}
+                <p class="card-title mb-4"> - <b>Nessuna prenotazione VENDUTA </b> del boxoffice (per clienti);</p>
+                {%endif%}
+
+                {%include 'includes/alerts.html'%}
+                <p class="card-text">Qui a destra il link per scaricare il file .xlsx (Excel) con i dettagli <i class="fa fa-arrow-right" aria-hidden="true" style="font-size:24px;"></i></p>
+                
+
+
+            </div>
+            <div class="col-4 col-sm-4">
+                <table class="table table-warning table-striped table-hover">
+                    <thead>
+                        <th>Nome del file</th>
+                        <th> Download</th>
+                      </thead>
+                      <tbody>
+                        <tr>
+                            <td> {{xlsx_filename}}</td>
+                            <td><a href="/media/{{relative_file_path}}" download> <i class="fa fa-download" style="font-size:24px;" id="ticket_item"></i></a></td>
+                        </tr>
+                      </tbody> 
+
+                </table>
+            </div>
+        </div>
+        {%else%}
+        <div class="row">
+            <div class="col-8 col-sm-8">
+
+                <h5 class="card-title mb-4">Nessuna prenotazione attiva trovata!</h5>
+                <p class="card-text"> Clicca su 'Abbandona pagina' per tornare all'elenco degli eventi. </p>
+                
+
+
+            </div>
+        {%endif%}
+        <br><br>
+        <div class="row">
+                <div class="col-6 col-md-4">
+                    <a href="{% url 'boxoffice' %}" id="cancel" name="cancel" class="btn btn-secondary">Torna alla home</a>
+                </div>
+            </div>
+    
+    </div> <!-- container .//  -->
+    </section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
+{%endblock%}

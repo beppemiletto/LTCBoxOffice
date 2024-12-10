@@ -11,6 +11,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.utils.formats import localize
 from email.mime.image import MIMEImage
 from accounts.models import Account
+from wsgiref.util import FileWrapper
 from .models import SellingSeats , PaymentMethod, BoxOfficeTransaction, CustomerProfile, BoxOfficeBookingEvent
 from .forms import Barcode_Reader, OrderEventForm, CustomerProfileForm, CustomerShortForm
 from .escpos_printer import EscPosPrinter, EscPosDummy, EscPosNetwork
@@ -30,6 +31,9 @@ from pdf2image import convert_from_path
 from PIL import Image, ImageFilter
 from collections import OrderedDict
 import re
+from ltcboxoffice.settings import MEDIA_ROOT
+from openpyxl import Workbook
+
 
 # Create your views here.
 @login_required(login_url='login')
@@ -1765,3 +1769,108 @@ def customers(request, event_id=None, customer=None):
         }
 
         return render(request,'boxoffice/customers.html',context)    
+
+def list_bookings(request, event_id=None, customer=None):
+    current_event = Event.objects.get(id=event_id)
+
+    now = datetime.now(pytz.timezone('Europe/Rome'))
+    
+    xlsx_filename = f"{current_event.event_slug}_bookings_{now.strftime('%Y%m%d')}.xlsx"
+    
+    wb = Workbook()
+    ws= wb.create_sheet(f'{current_event.show.shw_code}',0)
+    ws.merge_cells('A1:G1')
+    ws['A1'] = f"{current_event.show.shw_title} del {current_event.date_time}"
+    start_row = 1
+    try:
+        start_row += 2
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Prenotazioni attive da utenti WEB'
+        start_row+=1
+        active_orderevents = OrderEvent.objects.filter(event=current_event).filter(expired=False).order_by('user__last_name')
+        ws[f'A{start_row}'] = 'O.E. Number' 
+        ws[f'B{start_row}'] = 'Cognome' 
+        ws[f'C{start_row}'] = 'Nome' 
+        ws[f'D{start_row}'] = 'Email'
+        ws[f'E{start_row}'] = 'Telefono'
+        ws[f'F{start_row}'] = 'Posti' 
+        ws[f'G{start_row}'] = 'Totale' 
+        for order in active_orderevents:
+            start_row+=1
+            ws[f'A{start_row}'] = f'{order.pk}'
+            ws[f'B{start_row}'] = f'{order.user.last_name}'
+            ws[f'C{start_row}'] = f'{order.user.first_name}'
+            ws[f'D{start_row}'] = f'{order.user.email}'
+            ws[f'E{start_row}'] = f'{order.user.phone_number}'
+            ws[f'F{start_row}'] = f'{order.seats_price}'             
+            ws[f'G{start_row}'] = f'{order.seats_count()}'             
+    except:
+        active_orderevents = None
+        start_row += 1
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Non ci sono prenotazioni attive da utenti WEB'
+    
+    try:
+        start_row += 2
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Prenotazioni attive da Box Office per clienti (email, segreteria,...)'
+        start_row+=1
+        active_boxofficebookingevent = BoxOfficeBookingEvent.objects.filter(event=current_event).filter(expired=False).order_by('customer__last_name')
+        ws[f'A{start_row}'] = 'O. Number' 
+        ws[f'B{start_row}'] = 'Cognome' 
+        ws[f'C{start_row}'] = 'Nome' 
+        ws[f'D{start_row}'] = 'Email'
+        ws[f'E{start_row}'] = 'Telefono'
+        ws[f'F{start_row}'] = 'Posti' 
+        ws[f'G{start_row}'] = 'Totale' 
+        for order in active_boxofficebookingevent:
+            start_row+=1
+            ws[f'A{start_row}'] = f'{order.pk}'
+            ws[f'B{start_row}'] = f'{order.customer.last_name}'
+            ws[f'C{start_row}'] = f'{order.customer.first_name}'
+            ws[f'D{start_row}'] = f'{order.customer.email}'
+            ws[f'E{start_row}'] = f'{order.customer.phone_number}'
+            ws[f'F{start_row}'] = f'{order.seats_price}'             
+            ws[f'G{start_row}'] = f'{order.seats_count()}'             
+
+    except:
+        active_boxofficebookingevent = None
+        start_row += 1
+        ws.merge_cells(f'A{start_row}:G{start_row}')
+        ws[f'A{start_row}'] = 'Non ci sono prenotazioni attive da clienti BoxOffice'
+    try:
+        expired_orderevents = OrderEvent.objects.filter(event=current_event).filter(expired=True).order_by('user__last_name')
+    except:
+        expired_orderevents = None
+    
+    try:
+        expired_boxofficebookingevent = BoxOfficeBookingEvent.objects.filter(event=current_event).filter(expired=True).order_by('customer__last_name')
+    except:
+        expired_boxofficebookingevent = None
+
+
+    file_path = os.path.join(MEDIA_ROOT , 'order_list_xlsx',xlsx_filename)
+    relative_file_path = os.path.join('order_list_xlsx',xlsx_filename)
+
+    
+    try:
+        wb.save(filename=file_path)
+    except:
+        os.makedirs(os.path.join(MEDIA_ROOT,'order_list_xlsx'))
+        wb.save(filename=file_path)
+
+
+    context = {
+            'xlsx_filename':xlsx_filename,
+            'file_path': file_path,
+            'relative_file_path':relative_file_path,
+            'event' : current_event,
+            'active_orderevent': active_orderevents,
+            'active_boxofficebookingevent' : active_boxofficebookingevent,
+            'expired_orderevents': expired_orderevents,
+            'expired_boxofficebookingevent':  expired_boxofficebookingevent
+
+    }
+
+    return render(request, 'boxoffice/event_order_list_xlsx.html', context)
+

@@ -15,16 +15,18 @@
         </div>
     {%else%}
     <div class="row">
-        <aside class="col-lg-9">
+        <aside class="col-lg-10">
     <div class="card">
     <table class="table table-border">
     <thead class="text-muted">
         <th class="header" scope="colgroup" colspan="3"> <h4> Eventi che puoi gestire. </h4> </th>
     <tr class="small text-uppercase">
       <th scope="col">Evento</th>
-      <th scope="col" width="200">Apri gestione cassa.</th>
-      <th scope="col" width="200">Modifica esistente.</th>
-      <th scope="col" class="text-right" width="200"> Aggiungi prenotazione.</th>
+      <th scope="col" width="100">Cassa.</th>
+      <th scope="col" width="100">Modifica.</th>
+      <th scope="col" class="text-right" width="100"> Aggiungi pre.</th>
+      <th scope="col" class="text-right" width="100"> Lista pren.</th>
+
     </tr>
     </thead>
     <tbody>
@@ -51,8 +53,11 @@
             </div> <!-- price-wrap .// -->
         </td>
         <td class="text-right"> 
-        <a href="{% url 'add_bookings' event.pk %}" class="btn btn-primary">Nuova prenotazione</a>
+        <a href="{% url 'add_bookings' event.pk %}" class="btn btn-primary">Nuova</a>
         </td>
+        <td class="text-right"> 
+            <a href="{% url 'list_bookings' event.pk %}" class="btn btn-primary">.XLSX</a>
+            </td>
     </tr>
     {%endfor%}
     </tbody>
@@ -60,7 +65,7 @@
     </div> <!-- card.// -->
     
         </aside> <!-- col.// -->
-        <aside class="col-lg-3">
+        <aside class="col-lg-2">
     
             <div class="card">
             <div class="card-body">

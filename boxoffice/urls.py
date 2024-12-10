@@ -19,6 +19,7 @@ urlpatterns = [
     path('customers/<int:event_id>/', views.customers, name='customers'),
     path('add_bookings/<int:event_id>/<str:customer>/', views.add_bookings, name='add_bookings'),
     path('add_bookings/<int:event_id>/', views.add_bookings, name='add_bookings'),
+    path('list_bookings/<int:event_id>/', views.list_bookings, name='list_bookings'),
     path('edit_order/<int:orderevent_id>/', views.edit_order, name='edit_order'),
     # path('box_edit_order/<int:orderevent_id>/', views.box_edit_order, name='box_edit_order'),
     path('edit_booking/<str:boxofficebookingevent_number>/', views.edit_booking, name='edit_booking'),
