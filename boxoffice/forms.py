@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+import re
 
 class Barcode_Reader(forms.Form):
     barcode_code = forms.CharField(help_text="Enter the barcode code", 
@@ -12,7 +13,7 @@ class Barcode_Reader(forms.Form):
     def clean_barcode_code(self):
         data:str = self.cleaned_data['barcode_code']
 
-        codes:list = data.split('_')
+        codes:list = re.split('[_?]',data)
         if len(codes) == 3:
             print('Valid code detected')
         else:

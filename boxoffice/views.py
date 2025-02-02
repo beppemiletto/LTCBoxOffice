@@ -1031,7 +1031,7 @@ def barcode_read(request, event_id:int=None):
     if request.method == 'POST':
         form = Barcode_Reader(request.POST)
         if form.is_valid():
-            barcode_code = form.cleaned_data['barcode_code']
+            barcode_code = form.cleaned_data['barcode_code'].replace('?', '_')
             try:
                 orderevent = OrderEvent.objects.get(orderevent_number=barcode_code)
                 if orderevent in orderevents:
